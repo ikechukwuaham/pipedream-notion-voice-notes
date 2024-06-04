@@ -891,7 +891,7 @@ export default {
 				languagePrefix = ` You will write your summary in ${language.label} (ISO 639-1 code: "${language.value}").`;
 			}
 
-			prompt.base = `You are an assistant that summarizes voice notes, podcasts, lecture recordings, and other audio recordings that primarily involve human speech. You only write valid JSON.${
+			prompt.base = `You are a junior doctor working in the NHS. You are also an assistant that summarizes voice notes, podcasts, lecture recordings, and other audio recordings that primarily involve human speech. You have just written an article for presentation to a panel of doctors. You only write valid JSON.${
 				languagePrefix ? languagePrefix : ""
 			}
 			
@@ -965,6 +965,46 @@ export default {
 				if (this.summary_options.includes("Sentiment")) {
 					prompt.sentiment = `Key "sentiment" - add a sentiment analysis`;
 				}
+
+				if (this.summary_options.includes("Title Suggestion")) {
+					const verbosity =
+						this.verbosity === "High" ? "5" : this.verbosity === "Medium" ? "3" : "2";
+					prompt.title_suggestion = `Key "title_suggestion" - Suggest an appropriate title for the article, and limit the list to ${verbosity} items.`;
+				}
+
+				if (this.summary_options.includes("Medical Ethics")) {
+					const verbosity =
+						this.verbosity === "High" ? "5" : this.verbosity === "Medium" ? "3" : "2";
+					prompt.medical_ethics = `Key "medical_ethics" - add an array of pillars of medical ethics that are reflected in this article. Limit each item to 100 words, and limit the list to ${verbosity} items.`;
+				}
+
+				if (this.summary_options.includes("Ethics Justification")) {
+					const verbosity =
+						this.verbosity === "High" ? "5" : this.verbosity === "Medium" ? "3" : "2";
+					prompt.ethics_justification = `Key "ethics_justification" - add an array of arguments justifying the medical ethics listed. Limit each item to 100 words, and limit the list to ${verbosity} items.`;
+				}
+
+				if (this.summary_options.includes("Justification")) {
+					const verbosity = this.verbosity === "High" ? "4" : this.verbosity === "Medium" ? "3" : "2";
+					prompt.justification = `Key "justification" - Answer the following questions:\n\n` +
+						`- What sparked your interest in the problem?\n` +
+						`- What did you learn?\n` +
+						`- How did you use what you learned to solve the problem?\n` +
+						`- What was the positive outcome of what you learned and its application?`
+						.split('\n')
+						.slice(0, verbosity + 1)  // Add 1 to include the "Answer the following questions" line in the slice
+						.join('\n');
+				}
+								
+				if (this.summary_options.includes("Reflection")) {
+					const verbosity = this.verbosity === "High" ? "2" : this.verbosity === "Medium" ? "2" : "1";
+					prompt.reflection = `Key "reflection" - Answer the following questions:\n\n` +
+						`- What modification arose from the issue found in the background above?\n` +
+						`- What enhancement in your reasoning arose from this modification of this issue?`
+						.split('\n')
+						.slice(0, verbosity + 2)  // Add 2 to include both questions in the slice
+						.join('\n');
+				}
 			}
 
 			prompt.lock = `If the transcript contains nothing that fits a requested key, include a single array item for that key that says "Nothing found for this summary list type."
@@ -1013,6 +1053,34 @@ export default {
 
 			if ("sentiment" in prompt) {
 				exampleObject.sentiment = "positive";
+			}
+
+			if ("title_suggestion" in prompt) {
+				exampleObject.title_suggestion = "Suggested Title";
+			}
+
+			if ("medical_ethics" in prompt) {
+				exampleObject.medical_ethics = ["Respect for Autonomy", "Non-maleficence", "Beneficence", "Justice"];
+			}
+
+			if ("ethics_justification" in prompt) {
+				exampleObject.ethics_justification = "Justification for the listed medical ethics";
+			}
+
+			if ("justification" in prompt) {
+				exampleObject.justification = [
+						  "What sparked your interest in the problem?",
+						  "What did you learn?",
+						  "How did you use what you learned to solve the problem?",
+						  "What was the positive outcome of what you learned and its application?"
+						];
+			}
+
+			if ("reflection" in prompt) {
+				exampleObject.reflection = [
+						  "What modification arose from the issue found in the background above?",
+						  "What enhancement in your reasoning arose from this modification of this issue?"
+						];
 			}
 
 			prompt.example = `Here is example formatting, which contains example keys for all the requested summary elements and lists. Be sure to include all the keys and values that you are instructed to include above. Example formatting: ${JSON.stringify(
